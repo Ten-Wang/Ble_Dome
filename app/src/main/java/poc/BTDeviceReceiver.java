@@ -38,32 +38,34 @@ public class BTDeviceReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        String onReceive = "onReceive";
-        Log.d(TAG, onReceive);
+//        String onReceive = "onReceive";
+//        Log.d(TAG, onReceive);
 
         long nowTime = System.currentTimeMillis();
         if (nowTime - recordToastTime > TimeUnit.SECONDS.toMillis(3)) {
-            Toast.makeText(context, onReceive, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, onReceive, Toast.LENGTH_SHORT).show();
             recordToastTime = nowTime;
+//            BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
         }
 
         if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
             String extraDevice = BluetoothDevice.EXTRA_DEVICE;
             BluetoothDevice device = intent.getParcelableExtra(extraDevice);
-
             String deviceName = getKardiLiteDevice(device);
             if (!TextUtils.isEmpty(deviceName)) {
-                if (BluetoothAdapter.getDefaultAdapter().isDiscovering()) {
-                    Handler mHandler = new Handler();
-                    String actionFound = String.format("ACTION_FOUND:%s", deviceName);
-                    Toast.makeText(context, actionFound, Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, actionFound);
-                    if (((UBIApplication) context.getApplicationContext()).isDemoActivityActive()) {
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent("BLE_EXIST"));
-                    } else {
-                        context.startActivity(new Intent(context, DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
-                    }
+                BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (mAdapter.isDiscovering()) {
+//                    Handler mHandler = new Handler();
+//                    String actionFound = String.format("ACTION_FOUND:%s", deviceName);
+//                    Toast.makeText(context, actionFound, Toast.LENGTH_SHORT).show();
+//                    Log.d(TAG, actionFound);
+//                    if (((UBIApplication) context.getApplicationContext()).isDemoActivityActive()) {
+//                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent("BLE_EXIST"));
+//                    } else {
+//                        context.startActivity(new Intent(context, DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
+//                    }
+                    mAdapter.cancelDiscovery();
                 }
             }
         }

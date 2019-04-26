@@ -11,13 +11,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
@@ -43,6 +48,7 @@ public class InvokeService extends Service {
                 BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (!mAdapter.isDiscovering())
                     mAdapter.startDiscovery();
+//                startEvent();
             }
 
             @Override
@@ -55,8 +61,9 @@ public class InvokeService extends Service {
 
             }
         };
-        Observable.interval(30 * 1000, TimeUnit.MILLISECONDS).
+        Observable.interval(5 * 1000, TimeUnit.MILLISECONDS).
                 subscribeOn(Schedulers.io()).
+                observeOn(AndroidSchedulers.mainThread()).
                 subscribe(disposableObserver);
         mCompositeDisposable = new CompositeDisposable();
         mCompositeDisposable.add(disposableObserver);
@@ -66,6 +73,19 @@ public class InvokeService extends Service {
             mAdapter.startDiscovery();
 
         initNotification();
+    }
+
+    private void startEvent() {
+        Handler mHandler = new Handler(getMainLooper());
+        String actionFound = String.format("ACTION_FOUND:%s", "iBeacon");
+        Toast.makeText(getApplicationContext(), actionFound, Toast.LENGTH_SHORT).show();
+        Log.d(TAG, actionFound);
+        if (((UBIApplication) getApplicationContext()).isDemoActivityActive()) {
+            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent("BLE_EXIST"));
+        } else {
+            getApplicationContext().startActivity(new Intent(getApplicationContext(), DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+            mHandler.postDelayed(new InvokeDemoRunnable(getApplicationContext()), TimeUnit.SECONDS.toMillis(1));
+        }
     }
 
     private void initNotification() {
