@@ -61,6 +61,10 @@ public class InvokeService extends Service {
         mCompositeDisposable = new CompositeDisposable();
         mCompositeDisposable.add(disposableObserver);
 
+        BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (!mAdapter.isDiscovering())
+            mAdapter.startDiscovery();
+
         initNotification();
     }
 

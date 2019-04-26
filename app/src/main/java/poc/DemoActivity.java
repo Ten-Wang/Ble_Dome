@@ -1,6 +1,7 @@
 package poc;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -27,6 +28,12 @@ import java.util.concurrent.TimeUnit;
 import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+
 public class DemoActivity extends CustomAppCompatActivity {
 
     public int stateBeforeStart = 0;
@@ -35,7 +42,6 @@ public class DemoActivity extends CustomAppCompatActivity {
     public boolean mBleExist = false;
     private Handler mSecHandler;
     private Handler mReceiverHandler;
-    private DemoRunnable demoRunnable;
     private View btn_record;
     private Button open_detect;
     private Button close_detect;
@@ -45,7 +51,8 @@ public class DemoActivity extends CustomAppCompatActivity {
     private boolean isStartService = false;
 
     private DemoMessageReceiver messageReceiver;
-
+    private CompositeDisposable mCompositeDisposable;
+    private DisposableObserver<Long> disposableObserver;
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +64,6 @@ public class DemoActivity extends CustomAppCompatActivity {
 
 
         mSecHandler = new Handler();
-        demoRunnable = new DemoRunnable(mSecHandler, callback);
 
         mReceiverHandler = new Handler();
         StopRecordingRunnable stopRecordingRunnable = new StopRecordingRunnable(this);
@@ -71,6 +77,8 @@ public class DemoActivity extends CustomAppCompatActivity {
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock mWakeLock = Objects.requireNonNull(pm).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, String.valueOf(System.currentTimeMillis()));
         mWakeLock.acquire();
+
+
     }
 
     private void findViews() {
@@ -132,20 +140,33 @@ public class DemoActivity extends CustomAppCompatActivity {
         stateExecuting = 1;
         startTime = System.currentTimeMillis();
         tv_start.setText("紀錄資訊中");
-        mSecHandler.postDelayed(demoRunnable, TimeUnit.SECONDS.toMillis(1));
-    }
 
-    private DemoActivityCallback callback = new DemoActivityCallback() {
-        @Override
-        public void handlerCallback(Handler mSecHandler) {
-            if (stateExecuting == 1) {
-                updateTime();
-            } else {
-                stopEvent();
+        disposableObserver = new DisposableObserver<Long>() {
+            @Override
+            public void onNext(Long aLong) {
+                if (stateExecuting == 1) {
+                    updateTime();
+                } else {
+                    stopEvent();
+                }
             }
-            mSecHandler.postDelayed(demoRunnable, TimeUnit.SECONDS.toMillis(1));
-        }
-    };
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+        Observable.interval(1000, TimeUnit.MILLISECONDS).
+                observeOn(AndroidSchedulers.mainThread()).
+                subscribe(disposableObserver);
+        mCompositeDisposable = new CompositeDisposable();
+        mCompositeDisposable.add(disposableObserver);
+    }
 
     @Override
     protected void onDestroy() {
@@ -156,6 +177,7 @@ public class DemoActivity extends CustomAppCompatActivity {
         mSecHandler.removeCallbacks(null);
         mReceiverHandler.removeCallbacks(null);
         ((UBIApplication) getApplication()).setDemoActivityActive(false);
+        mCompositeDisposable.clear();
     }
 
     public void updateTime() {
@@ -174,7 +196,6 @@ public class DemoActivity extends CustomAppCompatActivity {
 
     public void stopEvent() {
         tv_start.setText("停止");
-
         tv_record.setVisibility(View.GONE);
     }
 }
