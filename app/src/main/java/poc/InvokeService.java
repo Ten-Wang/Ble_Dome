@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
@@ -14,12 +15,19 @@ import android.os.IBinder;
 
 import androidx.core.app.NotificationCompat;
 
+import java.util.concurrent.TimeUnit;
+
+import io.reactivex.Observable;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.observers.DisposableObserver;
+import io.reactivex.schedulers.Schedulers;
+
 public class InvokeService extends Service {
     private static final String TAG = "InvokeService";
 
     public static long timeStamp;
     private static BTDeviceReceiver mReceiver;
-    private Thread timeThread;
+    private CompositeDisposable mCompositeDisposable;
 
     @Override
     public void onCreate() {
@@ -28,8 +36,31 @@ public class InvokeService extends Service {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         registerReceiver(mReceiver, filter);
-        timeThread = new TimeThread();
-        timeThread.start();
+
+        DisposableObserver<Long> disposableObserver = new DisposableObserver<Long>() {
+            @Override
+            public void onNext(Long aLong) {
+                BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (!mAdapter.isDiscovering())
+                    mAdapter.startDiscovery();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        };
+        Observable.interval(30 * 1000, TimeUnit.MILLISECONDS).
+                subscribeOn(Schedulers.io()).
+                subscribe(disposableObserver);
+        mCompositeDisposable = new CompositeDisposable();
+        mCompositeDisposable.add(disposableObserver);
+
         initNotification();
     }
 
@@ -74,8 +105,6 @@ public class InvokeService extends Service {
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(mReceiver);
-        if (timeThread != null) {
-            timeThread.interrupt();
-        }
+        mCompositeDisposable.clear();
     }
 }
