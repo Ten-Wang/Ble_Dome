@@ -10,9 +10,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import java.util.concurrent.TimeUnit;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class BTDeviceReceiver extends BroadcastReceiver {
     private static final String TAG = "BTDeviceReceiver";
@@ -51,7 +51,8 @@ public class BTDeviceReceiver extends BroadcastReceiver {
         if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
             String extraDevice = BluetoothDevice.EXTRA_DEVICE;
             BluetoothDevice device = intent.getParcelableExtra(extraDevice);
-            String deviceName = getKardiLiteDevice(device);
+//            String deviceName = getKardiLiteDevice(device);
+            String deviceName = "D0:17:C2:BA:2E:F6";
             if (!TextUtils.isEmpty(deviceName)) {
                 BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (mAdapter.isDiscovering()) {
