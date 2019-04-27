@@ -56,16 +56,16 @@ public class BTDeviceReceiver extends BroadcastReceiver {
             if (!TextUtils.isEmpty(deviceName)) {
                 BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (mAdapter.isDiscovering()) {
-//                    Handler mHandler = new Handler();
-//                    String actionFound = String.format("ACTION_FOUND:%s", deviceName);
-//                    Toast.makeText(context, actionFound, Toast.LENGTH_SHORT).show();
-//                    Log.d(TAG, actionFound);
-//                    if (((UBIApplication) context.getApplicationContext()).isDemoActivityActive()) {
-//                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent("BLE_EXIST"));
-//                    } else {
-//                        context.startActivity(new Intent(context, DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-//                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
-//                    }
+                    Handler mHandler = new Handler();
+                    String actionFound = String.format("ACTION_FOUND:%s", deviceName);
+                    Toast.makeText(context, actionFound, Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, actionFound);
+                    if (((UBIApplication) context.getApplicationContext()).isDemoActivityActive()) {
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent("BLE_EXIST"));
+                    } else {
+                        context.startActivity(new Intent(context, DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
+                    }
                     mAdapter.cancelDiscovery();
                 }
             }

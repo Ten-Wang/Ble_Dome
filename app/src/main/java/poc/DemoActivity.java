@@ -1,7 +1,6 @@
 package poc;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -13,6 +12,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.example.myapplication.BlankActivity;
 import com.example.myapplication.R;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -27,12 +27,10 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
-import io.reactivex.schedulers.Schedulers;
 
 public class DemoActivity extends CustomAppCompatActivity {
 
@@ -45,6 +43,7 @@ public class DemoActivity extends CustomAppCompatActivity {
     private View btn_record;
     private Button open_detect;
     private Button close_detect;
+    private Button next_activity;
     private TextView tv_start;
     private TextView tv_record;
     Intent intentService;
@@ -53,26 +52,29 @@ public class DemoActivity extends CustomAppCompatActivity {
     private DemoMessageReceiver messageReceiver;
     private CompositeDisposable mCompositeDisposable;
     private DisposableObserver<Long> disposableObserver;
+    StopRecordingRunnable stopRecordingRunnable;
+    private BtnRecordClickListener btnRecordClickListener;
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         findViews();
-
+        mCompositeDisposable = new CompositeDisposable();
         intentService = new Intent(getApplicationContext(), InvokeService.class);
 
 
         mSecHandler = new Handler();
 
         mReceiverHandler = new Handler();
-        StopRecordingRunnable stopRecordingRunnable = new StopRecordingRunnable(this);
+        stopRecordingRunnable = new StopRecordingRunnable(this);
 
         messageReceiver = new DemoMessageReceiver(mReceiverHandler, this, stopRecordingRunnable);
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 messageReceiver, new IntentFilter("BLE_EXIST"));
-
-        btn_record.setOnClickListener(new BtnRecordClickListener(this, mSecHandler, stopRecordingRunnable));
+        btnRecordClickListener = new BtnRecordClickListener(this, mSecHandler, stopRecordingRunnable);
+        btn_record.setOnClickListener(btnRecordClickListener);
         ((UBIApplication) getApplication()).setDemoActivityActive(true);
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock mWakeLock = Objects.requireNonNull(pm).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, String.valueOf(System.currentTimeMillis()));
@@ -110,6 +112,14 @@ public class DemoActivity extends CustomAppCompatActivity {
             }
         });
 
+        next_activity = findViewById(R.id.next_activity);
+        next_activity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(DemoActivity.this, BlankActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK));
+                finish();
+            }
+        });
         tv_record = findViewById(R.id.tv_record);
         tv_start = findViewById(R.id.tv_start);
     }
@@ -164,7 +174,7 @@ public class DemoActivity extends CustomAppCompatActivity {
         Observable.interval(1000, TimeUnit.MILLISECONDS).
                 observeOn(AndroidSchedulers.mainThread()).
                 subscribe(disposableObserver);
-        mCompositeDisposable = new CompositeDisposable();
+
         mCompositeDisposable.add(disposableObserver);
     }
 
@@ -173,10 +183,16 @@ public class DemoActivity extends CustomAppCompatActivity {
         super.onDestroy();
         stateQuit = 1;
         stateExecuting = 0;
+        open_detect.setOnClickListener(null);
+        close_detect.setOnClickListener(null);
+        next_activity.setOnClickListener(null);
+        btnRecordClickListener.release();
+        stopRecordingRunnable.release();
+        messageReceiver.release();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(messageReceiver);
         mSecHandler.removeCallbacks(null);
         mReceiverHandler.removeCallbacks(null);
-        ((UBIApplication) getApplication()).setDemoActivityActive(false);
+//        ((UBIApplication) getApplication()).setDemoActivityActive(false);
         mCompositeDisposable.clear();
     }
 

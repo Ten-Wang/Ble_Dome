@@ -16,11 +16,10 @@ import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.core.app.NotificationCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
 import java.util.concurrent.TimeUnit;
 
+import androidx.core.app.NotificationCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -48,7 +47,7 @@ public class InvokeService extends Service {
                 BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (!mAdapter.isDiscovering())
                     mAdapter.startDiscovery();
-//                startEvent();
+                startEvent();
             }
 
             @Override
