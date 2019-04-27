@@ -53,7 +53,6 @@ public class DemoActivity extends CustomAppCompatActivity {
     private CompositeDisposable mCompositeDisposable;
     private DisposableObserver<Long> disposableObserver;
     StopRecordingRunnable stopRecordingRunnable;
-    private BtnRecordClickListener btnRecordClickListener;
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
@@ -73,8 +72,7 @@ public class DemoActivity extends CustomAppCompatActivity {
         messageReceiver = new DemoMessageReceiver(mReceiverHandler, this, stopRecordingRunnable);
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 messageReceiver, new IntentFilter("BLE_EXIST"));
-        btnRecordClickListener = new BtnRecordClickListener(this, mSecHandler, stopRecordingRunnable);
-        btn_record.setOnClickListener(btnRecordClickListener);
+        btn_record.setOnClickListener(new BtnRecordClickListener(this, mSecHandler, stopRecordingRunnable));
         ((UBIApplication) getApplication()).setDemoActivityActive(true);
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock mWakeLock = Objects.requireNonNull(pm).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, String.valueOf(System.currentTimeMillis()));
@@ -183,12 +181,6 @@ public class DemoActivity extends CustomAppCompatActivity {
         super.onDestroy();
         stateQuit = 1;
         stateExecuting = 0;
-        open_detect.setOnClickListener(null);
-        close_detect.setOnClickListener(null);
-        next_activity.setOnClickListener(null);
-        btnRecordClickListener.release();
-        stopRecordingRunnable.release();
-        messageReceiver.release();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(messageReceiver);
         mSecHandler.removeCallbacks(null);
         mReceiverHandler.removeCallbacks(null);

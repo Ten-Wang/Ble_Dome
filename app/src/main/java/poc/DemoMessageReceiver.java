@@ -20,9 +20,6 @@ public class DemoMessageReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (demoActivity == null) {
-            return;
-        }
         demoActivity.stateBeforeStart = 1;
         if (demoActivity.stateExecuting == 0) {
             mHandler.removeCallbacks(runnable);
@@ -35,11 +32,5 @@ public class DemoMessageReceiver extends BroadcastReceiver {
             demoActivity.startRecording();
         }
         mHandler.postDelayed(runnable, TimeUnit.SECONDS.toMillis(60));
-    }
-
-    public void release() {
-        mHandler = null;
-        demoActivity = null;
-        runnable = null;
     }
 }

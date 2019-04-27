@@ -19,9 +19,6 @@ public class BtnRecordClickListener implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        if (demoActivity == null) {
-            return;
-        }
         if (demoActivity.stateExecuting == 0) {
             demoActivity.stateBeforeStart = 0;
             demoActivity.startRecording();
@@ -32,11 +29,5 @@ public class BtnRecordClickListener implements View.OnClickListener {
             Toast.makeText(demoActivity.getApplicationContext(), "紀錄停止",
                     Toast.LENGTH_SHORT).show();
         }
-    }
-
-    public void release() {
-        demoActivity = null;
-        mSecHandler = null;
-        stopRecordingRunnable = null;
     }
 }
