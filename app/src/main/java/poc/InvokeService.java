@@ -47,7 +47,7 @@ public class InvokeService extends Service {
                 BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (!mAdapter.isDiscovering())
                     mAdapter.startDiscovery();
-                startEvent();
+//                startEvent();
             }
 
             @Override

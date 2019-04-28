@@ -181,10 +181,11 @@ public class DemoActivity extends CustomAppCompatActivity {
         super.onDestroy();
         stateQuit = 1;
         stateExecuting = 0;
+        stopRecordingRunnable.release();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(messageReceiver);
         mSecHandler.removeCallbacks(null);
         mReceiverHandler.removeCallbacks(null);
-//        ((UBIApplication) getApplication()).setDemoActivityActive(false);
+        ((UBIApplication) getApplication()).setDemoActivityActive(false);
         mCompositeDisposable.clear();
     }
 
@@ -205,5 +206,11 @@ public class DemoActivity extends CustomAppCompatActivity {
     public void stopEvent() {
         tv_start.setText("停止");
         tv_record.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }

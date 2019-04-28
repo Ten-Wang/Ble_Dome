@@ -63,8 +63,8 @@ public class BTDeviceReceiver extends BroadcastReceiver {
                     if (((UBIApplication) context.getApplicationContext()).isDemoActivityActive()) {
                         LocalBroadcastManager.getInstance(context).sendBroadcast(new Intent("BLE_EXIST"));
                     } else {
-                        context.startActivity(new Intent(context, DemoActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
-                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
+                        mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));mHandler.postDelayed(new InvokeDemoRunnable(context), TimeUnit.SECONDS.toMillis(1));
+                        context.startActivity(new Intent(context, DemoActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP));
                     }
                     mAdapter.cancelDiscovery();
                 }
